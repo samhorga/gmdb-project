@@ -1,8 +1,10 @@
 package com.galvanize.gmdb.services;
 
 import com.galvanize.gmdb.TestUtils.TestUtils;
+import com.galvanize.gmdb.exceptions.NonExistingMovieException;
 import com.galvanize.gmdb.model.Movie;
 import com.galvanize.gmdb.repository.MovieRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,5 +38,27 @@ public class MovieServiceUnitTests {
         assertEquals(TestUtils.getAllMovies().get(0).getRelease(), movieSaved.getRelease());
         assertEquals(TestUtils.getAllMovies().get(0).getRating(), movieSaved.getRating());
         assertEquals(TestUtils.getAllMovies().get(0).getTitle(), movieSaved.getTitle());
+    }
+
+    @Test
+    public void getMovieByTitle() {
+        when(movieRepository.findByTitle(any())).thenReturn(TestUtils.getAllMovies().get(0));
+
+        Movie actual = movieService.getMovieByTitle(TestUtils.getAllMovies().get(0).getTitle());
+
+        verify(movieRepository).findByTitle(any());
+
+        assertEquals(TestUtils.getAllMovies().get(0).toString(), actual.toString());
+        assertEquals(TestUtils.getAllMovies().get(0).getActors().toString(), actual.getActors().toString());
+        assertEquals(TestUtils.getAllMovies().get(0).getDescription(), actual.getDescription());
+        assertEquals(TestUtils.getAllMovies().get(0).getDirector(), actual.getDirector());
+        assertEquals(TestUtils.getAllMovies().get(0).getRelease(), actual.getRelease());
+        assertEquals(TestUtils.getAllMovies().get(0).getRating(), actual.getRating());
+        assertEquals(TestUtils.getAllMovies().get(0).getTitle(), actual.getTitle());
+    }
+
+    @Test
+    public void getMovieByTitleForNonExisting() {
+        Assertions.assertThrows(NonExistingMovieException.class, ()->{movieService.getMovieByTitle("TEST"); });
     }
 }
