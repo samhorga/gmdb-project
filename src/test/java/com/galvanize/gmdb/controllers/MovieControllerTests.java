@@ -1,6 +1,5 @@
 package com.galvanize.gmdb.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galvanize.gmdb.TestUtils.TestUtils;
@@ -8,7 +7,6 @@ import com.galvanize.gmdb.exceptions.NonExistingMovieException;
 import com.galvanize.gmdb.model.Movie;
 import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -124,5 +120,28 @@ public class MovieControllerTests {
 
         assertEquals(rating.toString(), movieResponse.getRatings().get(0).toString());
         assertEquals(rating.getStars(), movieResponse.getRatings().get(0).getStars());
+    }
+
+    @Test
+    public void calculateAverageStars() throws Exception {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        Movie movieSaved = movieRepository.save(movie);
+
+        Rating rating = new Rating(5);
+        Rating rating1 = new Rating(3);
+
+        mockMvc.perform(put("/gmdb/movies/rate/" + movieSaved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rating)))
+                .andExpect(status().isOk());
+
+        MvcResult mvcResult1 = mockMvc.perform(put("/gmdb/movies/rate/" + movieSaved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rating1)))
+                .andExpect(status().isOk()).andReturn();
+
+        Movie movieResponse = objectMapper.readValue(mvcResult1.getResponse().getContentAsString(), Movie.class);
+
+        assertEquals(4, movieResponse.getAverageStarRating());
     }
 }

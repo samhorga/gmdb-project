@@ -62,7 +62,9 @@ public class MovieServiceUnitTests {
 
     @Test
     public void getMovieByTitleForNonExisting() {
-        Assertions.assertThrows(NonExistingMovieException.class, ()->{movieService.getMovieByTitle("TEST"); });
+        Assertions.assertThrows(NonExistingMovieException.class, () -> {
+            movieService.getMovieByTitle("TEST");
+        });
     }
 
     @Test
@@ -75,5 +77,17 @@ public class MovieServiceUnitTests {
 
 
         assertEquals(5, actual.getRatings().get(0).getStars());
+    }
+
+    @Test
+    public void calculateAverageStars() {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        movie.setId(1L);
+        when(movieRepository.save(any())).thenReturn(movie);
+        when(movieRepository.findById(any())).thenReturn(Optional.of(movie));
+        Movie actual = movieService.submitStarRating(1L, new Rating(5));
+        movieService.submitStarRating(1L, new Rating(3));
+
+        assertEquals(4, actual.getAverageStarRating());
     }
 }

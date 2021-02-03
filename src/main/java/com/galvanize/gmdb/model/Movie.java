@@ -17,12 +17,13 @@ public class Movie {
     private Long Id;
     private String title;
     private String director;
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Actor> actors = new ArrayList<>();
     private String release;
     private String description;
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Rating> ratings = new ArrayList<>();
+
 
     public Movie(String title, String director, String release, String description) {
         this.title = title;
@@ -47,7 +48,20 @@ public class Movie {
                 ", rating=" + ratings +
                 '}';
     }
+
     public void addRating(Rating rating) {
         this.ratings.add(rating);
+    }
+
+    public double getAverageStarRating() {
+        double sum = 0;
+        for (Rating rating : ratings) {
+            sum += rating.getStars();
+        }
+        if (ratings.size() == 0) {
+            throw new ArithmeticException();
+        } else {
+            return sum / ratings.size();
+        }
     }
 }
