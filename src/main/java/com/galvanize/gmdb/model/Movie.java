@@ -21,14 +21,14 @@ public class Movie {
     private List<Actor> actors = new ArrayList<>();
     private String release;
     private String description;
-    private Integer rating;
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    private List<Rating> ratings = new ArrayList<>();
 
-    public Movie(String title, String director, String release, String description, Integer rating) {
+    public Movie(String title, String director, String release, String description) {
         this.title = title;
         this.director = director;
         this.release = release;
         this.description = description;
-        this.rating = rating;
     }
 
     public Movie() {
@@ -44,7 +44,10 @@ public class Movie {
                 ", actors=" + actors +
                 ", release='" + release + '\'' +
                 ", description='" + description + '\'' +
-                ", rating=" + rating +
+                ", rating=" + ratings +
                 '}';
+    }
+    public void addRating(Rating rating) {
+        this.ratings.add(rating);
     }
 }

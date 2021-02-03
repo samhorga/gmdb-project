@@ -1,6 +1,7 @@
 package com.galvanize.gmdb.controllers;
 
 import com.galvanize.gmdb.model.Movie;
+import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.services.MovieService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -32,4 +33,10 @@ public class MovieController {
     public Movie getByTitle(@PathVariable String title) {
         return movieService.getMovieByTitle(title);
     }
+
+    @PutMapping("/rate/{movieId}")
+    public Movie submitStarRating(@PathVariable Long movieId, @RequestBody Rating rating) {
+        return movieService.submitStarRating(movieId, rating);
+    }
+
 }

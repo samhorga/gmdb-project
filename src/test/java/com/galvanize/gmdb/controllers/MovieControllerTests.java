@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galvanize.gmdb.TestUtils.TestUtils;
 import com.galvanize.gmdb.exceptions.NonExistingMovieException;
 import com.galvanize.gmdb.model.Movie;
+import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,7 @@ public class MovieControllerTests {
     public void setUp() {
         movieRepository.deleteAll();
     }
+
     @Test
     public void getAllMovies() throws Exception {
         List<Movie> movieList = TestUtils.getAllMovies();
@@ -98,24 +100,29 @@ public class MovieControllerTests {
         assertEquals(movieRetrieved.getActors().toString(), movieResponse.getActors().toString());
     }
 
-        /*
-
-   Rule: Movie details include title, director, actors, release year, description and star rating.
-
-Given an existing movie
-When I visit that title
-Then I can see all the movie details.
-
-Given a non-existing movie
-When I visit that title
-Then I receive a friendly message that it doesn't exist.
-     */
-
     @Test
     public void getMovieByTitleForNonExistingMovie() throws Exception {
         mockMvc.perform(get("/gmdb/movies/" + "TEST"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof NonExistingMovieException))
                 .andExpect(result -> assertEquals("Movie not found.", result.getResolvedException().getMessage()));
+    }
+
+    @Test
+    public void submitStarRating() throws Exception {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        Movie movieSaved = movieRepository.save(movie);
+
+        Rating rating = new Rating(5);
+
+        MvcResult mvcResult = mockMvc.perform(put("/gmdb/movies/rate/" + movieSaved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rating)))
+                .andExpect(status().isOk()).andReturn();
+
+        Movie movieResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Movie.class);
+
+        assertEquals(rating.toString(), movieResponse.getRatings().get(0).toString());
+        assertEquals(rating.getStars(), movieResponse.getRatings().get(0).getStars());
     }
 }

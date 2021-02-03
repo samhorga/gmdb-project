@@ -2,10 +2,12 @@ package com.galvanize.gmdb.services;
 
 import com.galvanize.gmdb.exceptions.NonExistingMovieException;
 import com.galvanize.gmdb.model.Movie;
+import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MovieService {
@@ -28,6 +30,15 @@ public class MovieService {
         Movie movie =  movieRepository.findByTitle(title);
         if (movie != null) {
             return movie;
+        }
+        throw new NonExistingMovieException("Movie not found.");
+    }
+
+    public Movie submitStarRating(Long movieId, Rating rating) {
+        Optional<Movie> movieRetrieved = movieRepository.findById(movieId);
+        if(movieRetrieved.isPresent()) {
+            movieRetrieved.get().addRating(rating);
+            return movieRepository.save(movieRetrieved.get());
         }
         throw new NonExistingMovieException("Movie not found.");
     }
