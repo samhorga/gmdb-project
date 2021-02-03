@@ -2,6 +2,7 @@ package com.galvanize.gmdb.services;
 
 import com.galvanize.gmdb.TestUtils.TestUtils;
 import com.galvanize.gmdb.exceptions.NonExistingMovieException;
+import com.galvanize.gmdb.exceptions.StarNeededException;
 import com.galvanize.gmdb.model.Movie;
 import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
@@ -89,5 +90,26 @@ public class MovieServiceUnitTests {
         movieService.submitStarRating(1L, new Rating(3));
 
         assertEquals(4, actual.getAverageStarRating());
+    }
+
+    @Test
+    public void submitStarRatingAndTextReview_bothIncluded() {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        movie.setId(1L);
+        when(movieRepository.save(any())).thenReturn(movie);
+        when(movieRepository.findById(any())).thenReturn(Optional.of(movie));
+        Movie actual = movieService.submitStarRating(1L, new Rating(5, "AWESOME MOVIE!"));
+
+        assertEquals(5, actual.getRatings().get(0).getStars());
+        assertEquals("AWESOME MOVIE!", actual.getRatings().get(0).getReview());
+    }
+
+    @Test
+    public void submitStarRatingAndTextReview_missingStars() {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        movie.setId(1L);
+        Assertions.assertThrows(StarNeededException.class, () -> {
+            movieService.submitStarRating(1L, new Rating("AWESOME MOVIE!"));
+        });
     }
 }

@@ -58,10 +58,6 @@ public class Movie {
         for (Rating rating : ratings) {
             sum += rating.getStars();
         }
-        if (ratings.size() == 0) {
-            throw new ArithmeticException();
-        } else {
-            return sum / ratings.size();
-        }
+        return sum / ratings.size();
     }
 }

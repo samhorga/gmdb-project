@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galvanize.gmdb.TestUtils.TestUtils;
 import com.galvanize.gmdb.exceptions.NonExistingMovieException;
+import com.galvanize.gmdb.exceptions.StarNeededException;
 import com.galvanize.gmdb.model.Movie;
 import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
@@ -143,5 +144,41 @@ public class MovieControllerTests {
         Movie movieResponse = objectMapper.readValue(mvcResult1.getResponse().getContentAsString(), Movie.class);
 
         assertEquals(4, movieResponse.getAverageStarRating());
+    }
+
+    @Test
+    public void submitStarRatingAndTextReview_bothIncluded() throws Exception {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        Movie movieSaved = movieRepository.save(movie);
+
+        Rating rating = new Rating(5, "excellent movie");
+
+
+        MvcResult mvcResult = mockMvc.perform(put("/gmdb/movies/rate/" + movieSaved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rating)))
+                .andExpect(status().isOk()).andReturn();
+
+        Movie movieResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Movie.class);
+
+        assertEquals(rating.toString(), movieResponse.getRatings().get(0).toString());
+        assertEquals(rating.getStars(), movieResponse.getRatings().get(0).getStars());
+        assertEquals(rating.getReview(), movieResponse.getRatings().get(0).getReview());
+
+    }
+
+    @Test
+    public void submitStarRatingAndTextReview_missingStars() throws Exception {
+        Movie movie = TestUtils.getAllMovies().get(0);
+        Movie movieSaved = movieRepository.save(movie);
+
+        Rating rating = new Rating("excellent movie");
+
+        mockMvc.perform(put("/gmdb/movies/rate/" + movieSaved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rating)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof StarNeededException))
+                .andExpect(result -> assertEquals("ERROR. Star needed for the rating", result.getResolvedException().getMessage()));
     }
 }

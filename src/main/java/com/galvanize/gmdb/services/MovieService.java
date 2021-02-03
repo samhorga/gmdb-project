@@ -1,6 +1,7 @@
 package com.galvanize.gmdb.services;
 
 import com.galvanize.gmdb.exceptions.NonExistingMovieException;
+import com.galvanize.gmdb.exceptions.StarNeededException;
 import com.galvanize.gmdb.model.Movie;
 import com.galvanize.gmdb.model.Rating;
 import com.galvanize.gmdb.repository.MovieRepository;
@@ -35,6 +36,9 @@ public class MovieService {
     }
 
     public Movie submitStarRating(Long movieId, Rating rating) {
+        if(rating.getStars() == null || rating.getStars() == 0) {
+            throw new StarNeededException("ERROR. Star needed for the rating");
+        }
         Optional<Movie> movieRetrieved = movieRepository.findById(movieId);
         if(movieRetrieved.isPresent()) {
             movieRetrieved.get().addRating(rating);
